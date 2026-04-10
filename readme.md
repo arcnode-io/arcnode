@@ -1,5 +1,4 @@
-# Arcnode 
-
+![](https://arcnode.io/assets/banner.svg)
 ![](https://img.shields.io/badge/site-arcnode.io-27a699)
 ![](https://img.shields.io/badge/license-open-gray)
 
