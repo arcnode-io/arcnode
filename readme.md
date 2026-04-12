@@ -53,11 +53,14 @@ operator -> ems: spin up (sim mode → live on commissioning)
 - [`ems-analyst-agent`](https://gitlab.com/arcnode-io/ems-analyst-agent) — energy analyst agent (RAG + KG)
 - [`ems-analyst-server`](https://gitlab.com/arcnode-io/ems-analyst-server) — FastAPI service unifying the above
 
-### EDP Toolchain (3 repos — engineering deployment packages)
+### EDP Toolchain (2 repos — engineering deployment packages)
 
 - [`edp-api`](https://gitlab.com/arcnode-io/edp-api) — sizing engine + EDP artifact generator (single responsibility)
 - [`edp-interface-plates`](https://gitlab.com/arcnode-io/edp-interface-plates) — CAD source for the inter-container interface plates
-- [`ems-line-controller-dlr-pcb`](https://gitlab.com/arcnode-io/ems-line-controller-dlr-pcb) — Pi HAT PCB for the four DLR sensors
+
+### Custom Hardware (1 repo)
+
+- [`ems-line-controller-dlr-pcb`](https://gitlab.com/arcnode-io/ems-line-controller-dlr-pcb) — Pi HAT PCB for the solar-powered DLR sensor RTU
 
 ### Public Surface (3 repos)
 
