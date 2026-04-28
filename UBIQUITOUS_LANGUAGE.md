@@ -13,30 +13,32 @@ Canonical vocabulary for product, engineering, and customer communication. One t
 | Term | Definition | Aliases to avoid |
 |---|---|---|
 | **module** | A physical 10ft ISO container *and* the informational domain concept it represents — the two are the same entity in this system | container, unit, box, sub-system |
-| **component** | A piece of equipment installed inside a module (cells, BMS, GPU server, chiller, breaker, etc.) | sub-module, device, part, equipment unit |
+| **equipment** | A piece of gear installed inside a module (cells, BMS, GPU server, chiller, breaker, racks, sensors, etc.). Equipment may itself contain further equipment — depth is unbounded. | sub-module, component, part, equipment unit, sub-component |
 
 Four module types: `bess_module`, `compute_module`, `thermal_module`, `grid_module`.
 
-## Class System
+## Templates
 
 | Term | Definition | Aliases to avoid |
 |---|---|---|
-| **class** | A versioned YAML template that declares the canonical measurement/command vocabulary, protocol binding scaffold, and standards metadata for one module or component type | device type, template, model |
-| **module class** | A class whose definition lives in `arcnode/device_classes/modules/`; always has a `contains:` block | — |
-| **component class** | A class whose definition lives in `arcnode/device_classes/components/` | — |
-| **line class** | A class for cross-cutting infrastructure not bound to a container (`dlr_sensor`, `phase_shift_transformer`, `industrial_gateway`) | — |
+| **template** | A versioned YAML definition that declares the canonical measurement/command vocabulary, protocol-binding scaffold, and standards metadata for one type of module or equipment | class, device type, device model, profile (collides with IEC 61850 conformance profiles) |
+| **module template** | A template whose definition lives in `arcnode/device_templates/modules/`; always has a `contains:` block | — |
+| **equipment template** | A template whose definition lives in `arcnode/device_templates/equipment/` | component template, component class |
+| **line template** | A template for cross-cutting infrastructure not bound to a container (`dlr_sensor`, `phase_shift_transformer`, `industrial_gateway`) | — |
 
-"Class" appears only on engineering surfaces (YAML files, code, `x-class` extension). It does not appear in HMI labels, customer docs, or sales material.
+Why "template" instead of "class": *class* is OOP jargon and doesn't translate to operators or industrial integrators. *Template* is the standard SCADA/HMI term for "a definition you instantiate." OPC UA's *ObjectType*, IEC 61850's *Logical Node Type*, BACnet's *ObjectType*, and Sparkplug's *Device Definition* all model the same concept.
+
+Templates appear on engineering surfaces (YAML files, code, the `template:` field on every DTM device) and may appear in commissioning UIs. They do not appear in HMI runtime labels, customer-facing docs, or sales material — those use **display name**.
 
 ## Devices & Topology
 
 | Term | Definition | Aliases to avoid |
 |---|---|---|
-| **device** | An instance of a class within a site; identified by `device_id` (snake_case slug, immutable) | node, asset, entity |
-| **device-0** | A module-tier device — directly instantiated from a module class | — |
-| **device-1** | A component-tier device — instantiated from a component class, has `parent: <module_id>` | — |
-| **DTM** | Device Topology Manifest — `/etc/ems/dtm.json`; the authoritative per-deployment record of every device instance, its class, its display-name overrides, and the site's electrical bus topology (`buses[]`) | topology file, device manifest |
-| **bus** | A named electrical node (DC or AC) to which module-tier devices connect. Declared in the DTM `buses[]` block. Not a device — it has no MQTT topics and no class. Corresponds to IEC 61850 `ConnectivityNode`. | bus bar, electrical node, connectivity node |
+| **device** | An instance of a template within a site; identified by `device_id` (snake_case slug, immutable) | node, asset, entity |
+| **module-tier device** | A device whose template is a module template; sits at the root of the device tree (`parent` is null) | — |
+| **equipment-tier device** | A device whose template is an equipment template; has `parent: <device_id>` pointing to a containing device. The containing device may itself be equipment-tier — depth is unbounded | sub-device, child device |
+| **DTM** | Device Topology Manifest — `/etc/ems/dtm.json`; the authoritative per-deployment record of every device instance, its template, its display-name overrides, the site's electrical bus topology (`buses[]`), and a `templates_used` map embedding every template the `devices` block references | topology file, device manifest |
+| **bus** | A named electrical node (DC or AC) to which module-tier devices connect. Declared in the DTM `buses[]` block. Not a device — it has no MQTT topics and no template. Corresponds to IEC 61850 `ConnectivityNode`. | bus bar, electrical node, connectivity node |
 | **SLD** | Single Line Diagram — served by the EMS from the EDP SVG artifact; loaded by `ems-hmi` at `/modules/sld`. Live MQTT measurements are overlaid on the SVG by binding to element IDs that match `device_id` slugs. Bus connection states are driven by `buses[]` from the DTM. Not a hand-drawn per-deployment artifact — the SVG is generated by `edp-api` from the sizing payload. | one-line diagram, topology diagram |
 | **deployment** | One running EMS stack: one CFN stack or one ISO image, one EMQX broker, one DTM, one `deployment_uuid` | install, instance, stack |
 | **site** | A physical location within a deployment; identified by `site_id` in MQTT topics. MVP: one deployment = one site | location, plant, facility |
@@ -48,7 +50,7 @@ MVP note: each deployment contains exactly one site. The `sites/{site_id}/` topi
 | Term | Definition | Aliases to avoid |
 |---|---|---|
 | **measurement** | What a device can emit — a named, typed data channel with a fixed unit (e.g. `voltage_dc`, `conductor_temp`). Static identifier; lives in the topic | tag, metric, point, reading, state |
-| **sample** | One timestamped value on a measurement channel — payload `{ts, value}` where `ts` is UTC epoch milliseconds. All timestamps system-wide are UTC; no local-time conversion is applied at any layer. | reading, data point, observation |
+| **sample** | One timestamped value on a measurement channel — payload `{ts, value}` where `ts` is RFC3339 / ISO8601 with `Z` suffix. All timestamps system-wide are UTC; no local-time conversion is applied at any layer. | reading, data point, observation |
 | **command** | An imperative sent *to* a device. Verb is enum-locked: `set`, `reset`, `clear`, `start`, `stop`, `enable`, `disable` | action, instruction, setpoint (use only for the value, not the message) |
 | **target** | The thing a command operates on, e.g. `active_power` in `set/active_power/watts` | subject, object |
 | **unit** | Engineering unit carried in the topic slug, locked to the vocabulary in ADR-002 (e.g. `volts`, `amps`, `percent`, `none`) | uom |
@@ -67,13 +69,13 @@ system/{event_type}                                                      # 2 seg
 
 | Term | Definition | Aliases to avoid |
 |---|---|---|
-| **severity** | A per-value key on `enum` measurements in the class YAML: `ok \| warn \| alarm`. Flows through to the AsyncAPI spec as `x-severity`. Drives color in HMI `Mode` components. Absent on pure mode enums (e.g. `control_mode`) — absence means the label carries all meaning, not color. | alarm level, priority |
+| **severity** | A per-value key on `enum` measurements in the template YAML: `ok \| warn \| alarm`. Flows through to the AsyncAPI spec as `x-severity`. Drives color in HMI `Mode` components. Absent on pure mode enums (e.g. `control_mode`) — absence means the label carries all meaning, not color. | alarm level, priority |
 | **register_value** | The integer that a non-native-protocol device (Modbus, DNP3, CAN) places on the wire for a given enum value. The industrial gateway translates this to the string label before publishing to MQTT. The HMI never sees `register_value`. Not needed for `mqtt_native` or `redfish` bindings. | raw value, wire value |
 | **maintenance mode** | A software-only flag set on a device via the HMI indicating that physical work is in progress. Disables HMI commands to that device and renders it with a wrench indicator on the SLD. Not a physical lockout — does not prevent hardware energization. | LOTO (avoid — that is a physical field procedure, not a software concept) |
 
 ## HMI Display Primitives
 
-The five components that render measurement samples in `ems-hmi`. Each maps to one `type` in the class YAML. These terms are used by designer, PM, and engineer when discussing what the HMI shows — not what the wire carries.
+The five components that render measurement samples in `ems-hmi`. Each maps to one `type` in the template YAML. These terms are used by designer, PM, and engineer when discussing what the HMI shows — not what the wire carries.
 
 | Term | Measurement type | What it renders | Aliases to avoid |
 |---|---|---|---|
@@ -90,14 +92,14 @@ The five components that render measurement samples in `ems-hmi`. Each maps to o
 | **canonical name** | Snake_case slug used in topics, code, and the AsyncAPI spec; immutable once a device is provisioned | internal name, system name |
 | **display name** | Customer-facing mutable label; lives in DTM under `display_name`, propagated to HMI via `x-display-name` | friendly name, label (ok informally) |
 
-Resolution order: DTM override → class default → humanized canonical.
+Resolution order: DTM override → template default → humanized canonical.
 
 ## Specs & Standards
 
 | Term | Definition | Aliases to avoid |
 |---|---|---|
-| **AsyncAPI spec** | The AsyncAPI v3 document served by `ems-device-api` at `GET /asyncapi`; generated from DTM × class definitions; single source of truth for all topic shapes, payload schemas, and protocol bindings | "the spec", API spec, topic spec |
-| **IEC 61850** | The grid-equipment communication standard; DTM is a strict superset of IEC 61850 SCD. Structural SCD enforcement deferred to v1.x; `iec_61850` metadata blocks present in class YAML as annotation. Query the domain MCP server for IEC 61850 logical node definitions. | — |
+| **AsyncAPI spec** | The AsyncAPI v3 document served by `ems-device-api` at `GET /asyncapi`; generated from the persisted DTM (which embeds its own `templates_used` map); single source of truth for all topic shapes, payload schemas, and protocol bindings | "the spec", API spec, topic spec |
+| **IEC 61850** | The grid-equipment communication standard; DTM is a strict superset of IEC 61850 SCD. Structural SCD enforcement deferred to v1.x; `iec_61850` metadata blocks present in template YAML as annotation. Query the domain MCP server for IEC 61850 logical node definitions. | — |
 | **SCD** | Substation Configuration Description — the IEC 61850 XML export format that DTM supersedes for Arcnode devices | — |
 
 ---
@@ -106,12 +108,12 @@ Resolution order: DTM override → class default → humanized canonical.
 
 - A **deployment** contains one or more **sites** (MVP: exactly one site per deployment)
 - A **site** contains one or more **devices**
-- A **device** is an instance of a **class**; its canonical identity is `{site_id}/{device_id}`
-- A hardware **module** (device-0) may contain one or more **components** (device-1 instances with `parent: <module_id>`)
-- A **class** declares the **measurement** and **command** vocabulary for all devices of that type
-- A **DTM** declares every **device** instance for a **deployment**; it references class versions, not class contents. It also carries a `buses[]` block encoding the site's electrical topology.
-- A **bus** connects two or more **device-0** instances at the same voltage domain. A device that bridges domains (e.g. `grid_module` on both AC and DC) appears in multiple `buses[]` entries, distinguished by an optional `port` label.
-- The **AsyncAPI spec** is stamped out from DTM × class definitions at startup
+- A **device** is an instance of a **template**; its canonical identity is `{site_id}/{device_id}`
+- A **module-tier device** may contain one or more **equipment-tier devices** (each with `parent: <ancestor_device_id>`); depth is unbounded
+- A **template** declares the **measurement** and **command** vocabulary for all devices of that type
+- A **DTM** declares every **device** instance for a **deployment**, references templates by `${name}.${version}` slug, and embeds the full template definitions in `templates_used` so the payload is self-describing. It also carries a `buses[]` block encoding the site's electrical topology.
+- A **bus** connects two or more **module-tier devices** at the same voltage domain. A device that bridges domains (e.g. `grid_module` on both AC and DC) appears in multiple `buses[]` entries, distinguished by an optional `port` label.
+- The **AsyncAPI spec** is stamped out from the persisted DTM (which already contains its own `templates_used`)
 - A **measurement** identifies a channel (static); a **sample** is one value on that channel (dynamic)
 - **status** is a **measurement** — it participates in the same topic structure and payload schema as any other measurement
 
@@ -119,21 +121,21 @@ Resolution order: DTM override → class default → humanized canonical.
 
 ## Example Dialogue
 
-> **Dev:** "When a new compute module is installed, do I add a new device or a new class?"
+> **Dev:** "When a new compute module is installed, do I add a new device or a new template?"
 
-> **Domain expert:** "New device — you instantiate the existing `compute_module.v1` class. A new class is only needed if this module type has different measurements or commands than anything we've built before."
+> **Domain expert:** "New device — you instantiate the existing `compute_module.v1` template. A new template is only needed if this module type has different measurements or commands than anything we've built before."
 
-> **Dev:** "And the display name the customer sees — is that in the class or the DTM?"
+> **Dev:** "And the display name the customer sees — is that in the template or the DTM?"
 
-> **Domain expert:** "DTM. The class holds the canonical name, like `gpu_core_temp`. The DTM holds the display name override, like 'Rack 3 GPU Temp'. The HMI renders the DTM value; the topic always uses the canonical name."
+> **Domain expert:** "DTM. The template holds the canonical name, like `gpu_core_temp`. The DTM holds the display name override, like 'Rack 3 GPU Temp'. The HMI renders the DTM value; the topic always uses the canonical name."
 
 > **Dev:** "So if the customer renames it, the topic doesn't change?"
 
 > **Domain expert:** "Exactly. Topics are immutable once provisioned. Only display names move."
 
-> **Dev:** "What goes into the AsyncAPI spec — the class or the DTM or both?"
+> **Dev:** "What goes into the AsyncAPI spec — the template or the DTM or both?"
 
-> **Domain expert:** "`ems-device-api` stamps it out from both: the DTM tells it which device instances exist, the class tells it what measurements and commands each instance has. The AsyncAPI spec is the output — it's what the gateway and HMI consume."
+> **Domain expert:** "`ems-device-api` stamps it out from the DTM alone — the DTM already embeds its own `templates_used` map, so device-api doesn't need to read the template directory. It receives, persists, projects."
 
 ---
 
@@ -145,8 +147,10 @@ Resolution order: DTM override → class default → humanized canonical.
 
 - **"Site" implies multi-site** — the `sites/{site_id}/` topic prefix implies multiple sites per deployment, but MVP is 1:1 (one deployment = one site). The prefix is retained for forward-compatibility. Docs that describe "a site" at MVP mean "the single site in that deployment."
 
-- **"Device" (two tiers)** — used both for module-tier (device-0) and component-tier (device-1) instances. Both are correct uses of "device"; distinguish with **device-0** / **device-1** notation only when tier matters.
+- **"Device" (multi-tier)** — used for both module-tier and equipment-tier instances. Both are correct uses of "device"; distinguish with **module-tier device** / **equipment-tier device** when tier matters. Equipment-tier devices may contain further equipment-tier devices (a `bess_rack` containing `bess_cell`s) — depth is unbounded.
 
 - **"State"** — appeared as a draft third-family name. Not a distinct concept. Anything a device emits — including alarm state, tap position, communication health — is a **measurement**. There is no `states/` family.
 
 - **"reading" (lowercase) vs `Reading` (component)** — the MQTT messaging table lists "reading" as an alias to avoid for `sample`. The HMI component `Reading` (capital R) is a different concept: it is the component that renders a float sample value on screen. Disambiguate by capitalisation and context. In MQTT / protocol discussions: use `sample`. In HMI / design discussions: use `Reading`.
+
+- **"class" (legacy)** — earlier docs and code used *class* for what is now called *template*. The legacy term remains valid only when discussing OOP / TypeScript / Python language constructs. Anywhere else it's a rename target.

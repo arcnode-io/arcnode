@@ -19,22 +19,28 @@ actor operator
 participant configurator
 participant platform_api
 participant edp_api
+database platform_s3
 actor epc_integrator
 participant ems
 
 operator -> configurator: load + site + context inputs
 configurator -> platform_api: POST /platform-api/orders
-platform_api -> edp_api: POST /edp-api/jobs (sizing payload)
-edp_api -> platform_api: edp_artifacts[]
-platform_api -> operator: email\n(EDP zip, EMS payload, F-Droid links)
+platform_api --> configurator: 202 "check your inbox"
+platform_api -> edp_api: POST /edp-api/jobs (ConfiguratorPayload)
+edp_api --> platform_api: 202 { job_id }
+platform_api -> edp_api: GET /edp-api/jobs/{job_id} (poll)
+edp_api --> platform_api: edp_artifacts[] + ems_delivery
+platform_api -> platform_s3: archive artifacts + render index.html
+platform_api -> operator: email (portal link)
+operator -> platform_s3: open portal\n(EDP downloads, CFN deep link or ISO, F-Droid link)
 operator -> epc_integrator: hand off EDP
 operator -> ems: spin up (sim mode → live on commissioning)
 ```
 
 1. Operator enters load requirements, site constraints, and deployment context into the **System Configurator**.
 2. The configurator submits to **`platform-api`**, which forwards the sizing payload to **`edp-api`** and waits for the 8 EDP artifacts.
-3. `platform-api` builds the delivery bundle: the EDP package, the EMS deployment payload (CloudFormation deep link or air-gapped ISO, both embedding the DTM), and a link to the Android EMS app on F-Droid with DTM upload instructions.
-4. Operator's inbox receives the bundle. EDP goes to the electrical integrator. Operator spins up the EMS, which starts in simulation mode and switches to live on commissioning. No vendor involvement required.
+3. `platform-api` archives the EDP artifacts to S3 and renders an HTML portal listing them alongside the EMS deployment link (CloudFormation deep link or air-gapped ISO, both embedding the DTM) and a link to the Android EMS app on F-Droid with DTM upload instructions.
+4. Operator's inbox receives a link to the portal. EDP goes to the electrical integrator. Operator clicks the EMS deployment link, which spins up EMS in simulation mode and switches to live on commissioning. No vendor involvement required.
 
 ## Repositories
 

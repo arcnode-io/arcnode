@@ -1,0 +1,44 @@
+template: thermal_module
+version: v1
+
+bacnet:
+  object_types: [analog_input, binary_output, multi_state_value]
+
+contains:
+  required:
+    - { template: chiller.v1, count: 1 }
+  scalable:
+    - { template: pump.v1, count_min: 1, count_max: 4 }
+
+measurements:
+  delta_t:
+    unit: celsius
+    type: float
+    poll_rate_hz: 1.0
+    display_name_default: "Delta T"
+  coolant_flow:
+    unit: liters_per_minute
+    type: float
+    poll_rate_hz: 1.0
+    display_name_default: "Coolant Flow"
+  chiller_load:
+    unit: percent
+    type: float
+    poll_rate_hz: 0.5
+    display_name_default: "Chiller Load"
+  thermal_alarm:
+    unit: none
+    type: enum
+    values:
+      ok:    { severity: ok,    register_value: 0 }
+      warn:  { severity: warn,  register_value: 1 }
+      fault: { severity: alarm, register_value: 2 }
+    display_name_default: "Thermal Alarm"
+
+protocol_binding_template:
+  type: modbus_tcp
+  register_map:
+    delta_t:       { addr: 8000, type: int16, scale: 0.1 }
+    coolant_flow:  { addr: 8002, type: int16, scale: 0.1 }
+    chiller_load:  { addr: 8004, type: uint16, scale: 0.01 }
+    thermal_alarm: { addr: 8010, type: uint8 }
