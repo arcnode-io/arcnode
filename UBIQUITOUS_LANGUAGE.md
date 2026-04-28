@@ -22,11 +22,13 @@ Four module types: `bess_module`, `compute_module`, `thermal_module`, `grid_modu
 | Term | Definition | Aliases to avoid |
 |---|---|---|
 | **template** | A versioned YAML definition that declares the canonical measurement/command vocabulary, protocol-binding scaffold, and standards metadata for one type of module or equipment | class, device type, device model, profile (collides with IEC 61850 conformance profiles) |
-| **module template** | A template whose definition lives in `arcnode/device_templates/modules/`; always has a `contains:` block | — |
-| **equipment template** | A template whose definition lives in `arcnode/device_templates/equipment/` | component template, component class |
+| **module template** | A template whose definition lives in `edp-api/device_templates/modules/`; always has a `contains:` block | — |
+| **equipment template** | A template whose definition lives in `edp-api/device_templates/equipment/` | component template, component class |
 | **line template** | A template for cross-cutting infrastructure not bound to a container (`dlr_sensor`, `phase_shift_transformer`, `industrial_gateway`) | — |
 
 Why "template" instead of "class": *class* is OOP jargon and doesn't translate to operators or industrial integrators. *Template* is the standard SCADA/HMI term for "a definition you instantiate." OPC UA's *ObjectType*, IEC 61850's *Logical Node Type*, BACnet's *ObjectType*, and Sparkplug's *Device Definition* all model the same concept.
+
+**Templates encode hardware ARCNODE designs and integrates ourselves.** Each container module is engineered end-to-end — battery cells, racks, BMS, inverters, GPU servers, NVLink switches, chillers, pumps, PCS, breakers. Templates capture that engineering as opinionated, versioned, PR-gated definitions, authored by the ARCNODE team. They are not vendor-agnostic placeholders or user extensibility points; codegen and HMI views are designed against the specific shapes templates declare. Per-deployment one-off measurements use the DTM's `extra_measurements:` escape hatch, not template-authoring.
 
 Templates appear on engineering surfaces (YAML files, code, the `template:` field on every DTM device) and may appear in commissioning UIs. They do not appear in HMI runtime labels, customer-facing docs, or sales material — those use **display name**.
 
