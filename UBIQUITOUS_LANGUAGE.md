@@ -17,6 +17,17 @@ Canonical vocabulary for product, engineering, and customer communication. One t
 
 Four module types: `bess_module`, `compute_module`, `thermal_module`, `grid_module`.
 
+## Geometry
+
+| Term | Definition | Aliases to avoid |
+|---|---|---|
+| **equipment envelope** | The simplified solid bounding the outermost surfaces of a piece of equipment. Source: vendor STEP, reduced by the envelope extraction pipeline. Used for: collision detection, container fit verification, mass property calculation. | bounding box, footprint |
+| **service envelope** | The directional clearance volume around equipment required for installation, operation, and maintenance. Always per-face (front, rear, top, sides, bottom) — access requirements are not isotropic. Source: vendor datasheet installation section, extracted into `equipment_spec`. Used for: clearance verification, installation sequencing, arc-flash boundary compliance, crane lift planning. | clearance zone, maintenance clearance |
+
+Equipment envelopes check whether things *fit*. Service envelopes check whether installed things can be *worked on*. Both are checked independently in the volumetric verification step; both must pass. A layout satisfying equipment envelopes but violating service envelopes is a maintenance trap.
+
+Pitfalls: (1) merging both into a single bounding box loses directionality — a 36" front and 6" rear clearance cannot be averaged; (2) some service clearances are regulatory (NEC arc-flash, NFPA egress) and non-negotiable; (3) installation-time clearances (crane, rigging) may exceed the operational service envelope — captured separately when relevant.
+
 ## Templates
 
 | Term | Definition | Aliases to avoid |
