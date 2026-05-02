@@ -5,7 +5,7 @@
 
 ## About
 
-Arcnode is the top-level catalog and overview repo for the [arcnode-io](https://gitlab.com/arcnode-io) organization. The system is built from four 10ft ISO container modules. Each is independently autonomous. They combine to form deployments from a single BESS node to a multi-MW AI compute site. The only custom-fabricated mechanical part in the entire system is the inter-container interface plate. 
+Arcnode is the top-level catalog and overview repo for the [arcnode-io](https://gitlab.com/arcnode-io) organization. The system is built from two 10ft ISO container types — Compute and Grid — that combine to form deployments from a single AI compute node to multi-MW sites. Customers bring their own BESS (Tesla Megapack, Tesla Megablock, or CATL EnerOne). The only custom-fabricated mechanical part is the inter-container interface plate.
 
 The full software stack is open. The engineering templates, the EMS, and the sizing engine are publicly available.
 

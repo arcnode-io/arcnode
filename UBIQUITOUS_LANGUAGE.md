@@ -15,7 +15,7 @@ Canonical vocabulary for product, engineering, and customer communication. One t
 | **module** | A physical 10ft ISO container *and* the informational domain concept it represents — the two are the same entity in this system | container, unit, box, sub-system |
 | **equipment** | A piece of gear installed inside a module (cells, BMS, GPU server, chiller, breaker, racks, sensors, etc.). Equipment may itself contain further equipment — depth is unbounded. | sub-module, component, part, equipment unit, sub-component |
 
-Four module types: `bess_module`, `compute_module`, `thermal_module`, `grid_module`.
+Two module types: `compute_module`, `grid_module`.
 
 ## Geometry
 
@@ -39,7 +39,7 @@ Pitfalls: (1) merging both into a single bounding box loses directionality — a
 
 Why "template" instead of "class": *class* is OOP jargon and doesn't translate to operators or industrial integrators. *Template* is the standard SCADA/HMI term for "a definition you instantiate." OPC UA's *ObjectType*, IEC 61850's *Logical Node Type*, BACnet's *ObjectType*, and Sparkplug's *Device Definition* all model the same concept.
 
-**Templates encode hardware ARCNODE designs and integrates ourselves.** Each container module is engineered end-to-end — battery cells, racks, BMS, inverters, GPU servers, NVLink switches, chillers, pumps, PCS, breakers. Templates capture that engineering as opinionated, versioned, PR-gated definitions, authored by the ARCNODE team. They are not vendor-agnostic placeholders or user extensibility points; codegen and HMI views are designed against the specific shapes templates declare. Per-deployment one-off measurements use the DTM's `extra_measurements:` escape hatch, not template-authoring.
+**Templates encode hardware ARCNODE designs and integrates ourselves.** Each container module is engineered end-to-end — GPU servers, NVLink switches, DLC pumps, breakers (compute); AC switchgear, transformer, PCS, metering relays (grid). Templates capture that engineering as opinionated, versioned, PR-gated definitions, authored by the ARCNODE team. They are not vendor-agnostic placeholders or user extensibility points; codegen and HMI views are designed against the specific shapes templates declare. Per-deployment one-off measurements use the DTM's `extra_measurements:` escape hatch, not template-authoring.
 
 Templates appear on engineering surfaces (YAML files, code, the `template:` field on every DTM device) and may appear in commissioning UIs. They do not appear in HMI runtime labels, customer-facing docs, or sales material — those use **display name**.
 
@@ -160,7 +160,7 @@ Resolution order: DTM override → template default → humanized canonical.
 
 - **"Site" implies multi-site** — the `sites/{site_id}/` topic prefix implies multiple sites per deployment, but MVP is 1:1 (one deployment = one site). The prefix is retained for forward-compatibility. Docs that describe "a site" at MVP mean "the single site in that deployment."
 
-- **"Device" (multi-tier)** — used for both module-tier and equipment-tier instances. Both are correct uses of "device"; distinguish with **module-tier device** / **equipment-tier device** when tier matters. Equipment-tier devices may contain further equipment-tier devices (a `bess_rack` containing `bess_cell`s) — depth is unbounded.
+- **"Device" (multi-tier)** — used for both module-tier and equipment-tier instances. Both are correct uses of "device"; distinguish with **module-tier device** / **equipment-tier device** when tier matters. Equipment-tier devices may contain further equipment-tier devices (an `ac_switchgear` containing `breaker`s) — depth is unbounded.
 
 - **"State"** — appeared as a draft third-family name. Not a distinct concept. Anything a device emits — including alarm state, tap position, communication health — is a **measurement**. There is no `states/` family.
 
