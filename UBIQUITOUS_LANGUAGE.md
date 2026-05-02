@@ -15,7 +15,7 @@ Canonical vocabulary for product, engineering, and customer communication. One t
 | **module** | A physical 10ft ISO container *and* the informational domain concept it represents — the two are the same entity in this system | container, unit, box, sub-system |
 | **equipment** | A piece of gear installed inside a module (cells, BMS, GPU server, chiller, breaker, racks, sensors, etc.). Equipment may itself contain further equipment — depth is unbounded. | sub-module, component, part, equipment unit, sub-component |
 
-Two module types: `compute_module`, `grid_module`.
+Three module types: `compute_module`, `grid_module` (arcnode-fabricated containers), and `bess_module` (BYO — customer's Tesla Megapack, Tesla Megablock, or CATL EnerOne). Arcnode does **not** fabricate a BESS module. There is no `thermal_module` — dry coolers, chillers, and other site cooling infrastructure are not first-class EMS-monitored modules; their telemetry, when collected, is projected through `compute_module` equipment-tier devices (DLC sensors, VFD readings).
 
 ## Geometry
 
@@ -39,7 +39,7 @@ Pitfalls: (1) merging both into a single bounding box loses directionality — a
 
 Why "template" instead of "class": *class* is OOP jargon and doesn't translate to operators or industrial integrators. *Template* is the standard SCADA/HMI term for "a definition you instantiate." OPC UA's *ObjectType*, IEC 61850's *Logical Node Type*, BACnet's *ObjectType*, and Sparkplug's *Device Definition* all model the same concept.
 
-**Templates encode hardware ARCNODE designs and integrates ourselves.** Each container module is engineered end-to-end — GPU servers, NVLink switches, DLC pumps, breakers (compute); AC switchgear, transformer, PCS, metering relays (grid). Templates capture that engineering as opinionated, versioned, PR-gated definitions, authored by the ARCNODE team. They are not vendor-agnostic placeholders or user extensibility points; codegen and HMI views are designed against the specific shapes templates declare. Per-deployment one-off measurements use the DTM's `extra_measurements:` escape hatch, not template-authoring.
+**Templates encode ARCNODE-engineered hardware *and* ARCNODE-authored integrations.** Compute and Grid containers are arcnode-built end-to-end (GPU servers, NVLink switches, DLC pumps + plate heat exchangers, breakers; AC switchgear, transformer, PCS, metering relays). BESS templates encode supported third-party gear (Tesla Megapack, Tesla Megablock, CATL EnerOne) — vendor protocol surfaces, register maps, and standards metadata, authored by the ARCNODE team. Templates are opinionated, versioned, PR-gated definitions; codegen and HMI views are designed against the specific shapes templates declare. They are not vendor-agnostic placeholders or user extensibility points. Per-deployment one-off measurements use the DTM's `extra_measurements:` escape hatch, not template-authoring.
 
 Templates appear on engineering surfaces (YAML files, code, the `template:` field on every DTM device) and may appear in commissioning UIs. They do not appear in HMI runtime labels, customer-facing docs, or sales material — those use **display name**.
 
