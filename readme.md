@@ -19,7 +19,7 @@ actor operator
 participant configurator
 participant platform_api
 participant edp_api
-database platform_s3
+database artifact_s3
 actor epc_integrator
 participant ems
 
@@ -30,9 +30,9 @@ platform_api -> edp_api: POST /edp-api/jobs (ConfiguratorPayload)
 edp_api --> platform_api: 202 { job_id }
 platform_api -> edp_api: GET /edp-api/jobs/{job_id} (poll)
 edp_api --> platform_api: edp_artifacts[] + ems_delivery
-platform_api -> platform_s3: archive artifacts + render index.html
+platform_api -> artifact_s3: archive artifacts + render index.html
 platform_api -> operator: email (portal link)
-operator -> platform_s3: open portal\n(EDP downloads, CFN deep link or ISO, F-Droid link)
+operator -> artifact_s3: open portal\n(EDP downloads, CFN deep link or ISO, F-Droid link)
 operator -> epc_integrator: hand off EDP
 operator -> ems: spin up (sim mode → live on commissioning)
 ```
@@ -59,9 +59,10 @@ operator -> ems: spin up (sim mode → live on commissioning)
 - [`ems-analyst-agent`](https://gitlab.com/arcnode-io/ems-analyst-agent) — energy analyst agent (RAG + KG)
 - [`ems-analyst-server`](https://gitlab.com/arcnode-io/ems-analyst-server) — FastAPI service unifying the above
 
-### EDP Toolchain (2 repos — engineering deployment packages)
+### EDP Toolchain (3 repos — engineering deployment packages)
 
 - [`edp-api`](https://gitlab.com/arcnode-io/edp-api) — sizing engine + EDP artifact generator (single responsibility)
+- [`edp-module-assemblies`](https://gitlab.com/arcnode-io/edp-module-assemblies) — equipment library + Compute/Grid Container assembly logic (BOM, sizing, SLD inputs)
 - [`edp-interface-plates`](https://gitlab.com/arcnode-io/edp-interface-plates) — CAD source for the inter-container interface plates
 
 ### Custom Hardware (1 repo)
