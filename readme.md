@@ -51,7 +51,7 @@ operator -> ems: spin up (sim mode → live on commissioning)
 - [`ems-hmi`](https://gitlab.com/arcnode-io/ems-hmi) — web + mobile HMI
 - [`ems-industrial-fixtures`](https://gitlab.com/arcnode-io/ems-industrial-fixtures) — mock industrial protocol fixtures
 - [`ems-industrial-gateway`](https://gitlab.com/arcnode-io/ems-industrial-gateway) — protocol → MQTT bridge
-- [`dlr-utility-envelope`](https://gitlab.com/arcnode-io/dlr-utility-envelope) — IEEE 738 DLR sensors + utility envelope publisher
+- [`dlr-operating-envelope`](https://gitlab.com/arcnode-io/dlr-operating-envelope) — IEEE 738 DLR sensors + DOE operating envelope publisher
 - [`dlr-pst-sim`](https://gitlab.com/arcnode-io/dlr-pst-sim) — phase shift transformer demo apparatus (ESP32 + relay)
 - [`ems-analyst-api`](https://gitlab.com/arcnode-io/ems-analyst-api) — unified historical + ML + chat
 - [`ems-analyst-model`](https://gitlab.com/arcnode-io/ems-analyst-model) — solar forecasting models
