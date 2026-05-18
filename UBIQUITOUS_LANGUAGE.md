@@ -112,14 +112,14 @@ Resolution order: DTM override → template default → humanized canonical.
 
 | Term | Definition | Aliases to avoid |
 |---|---|---|
-| **stage** | The deploy environment a service runs in. Picked by the `ENV` env var. Values: `local` (dev box), `demo` (self-hosted demo), `staging` (our cloud e2e through the device boundary, mocks via `industrial-fixtures.json`), `beta` (customer prod, customer DTM with no `connection` until commissioning POST). | env, environment, profile, tier |
+| **stage** | The deploy environment a service runs in. Picked by the `ENV` env var. Values: `local` (dev box, mocks everything), `demo` (self-hosted demo, bundled seed), `beta` (every AWS deploy — our smokes AND customer prod, same code path; distinguished by AWS account + DTM contents + per-deploy creds). | env, environment, profile, tier |
 | **cfg.defaults.yml** | Per-service YAML baked into the image. One block per stage. The file the loader reads first; pydantic validates after any customer merge. | base config, baseline config, cfg.yml |
 | **cfg.customer.yml** | Per-deploy YAML written by platform-api UserData from the `ConfiguratorPayload`. Mounted into the service container; deep-merged over the matching stage block in `cfg.defaults.yml` before validation. | customer overlay, customer override, runtime config |
 | **CFG_CUSTOMER_PATH** | Env var holding the path to `cfg.customer.yml`. The contract; the value is platform-supplied per service. | cfg path, overlay path |
 | **commissioning POST** | The `POST /topology` call a customer makes after deploy to fill in real device connection info (IP/port/unit_id). Until then, devices render `--` in HMI. | go-live, flip to live, activation |
-| **industrial fixtures** | Mock protocol servers (modbus / snmp / redfish / dnp3 / bacnet) shipped from `ems-industrial-fixtures`. Deployed in compose; used by the `staging` DTM to exercise the full path through the device boundary. | mocks, sim devices |
+| **industrial fixtures** | Mock protocol servers (modbus / snmp / redfish / dnp3 / bacnet) shipped from `ems-industrial-fixtures`. Deployed in compose; the `industrial-fixtures.json` DTM points devices at them to exercise the full path through the device boundary. | mocks, sim devices |
 
-Pitfalls: (1) treating `staging` and `beta` as different *modes* of the same deploy — they're different stages with different DTM inputs; (2) putting per-deploy values in `config.env` instead of `cfg.customer.yml` (the cardinal rule: secrets stay env, ENV stays env, everything else is YAML); (3) hardcoding paths the customer might re-target — use `CFG_CUSTOMER_PATH`, not literal file paths.
+Pitfalls: (1) inventing a separate "staging" or "prod" stage — every AWS deploy uses `ENV=beta`; what differs is the AWS account, DTM contents, and per-deploy creds (not a stage); (2) putting per-deploy values in `config.env` instead of `cfg.customer.yml` (the cardinal rule: secrets stay env, ENV stays env, everything else is YAML); (3) hardcoding paths the customer might re-target — use `CFG_CUSTOMER_PATH`, not literal file paths.
 
 ## Specs & Standards
 
