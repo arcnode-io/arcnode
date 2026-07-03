@@ -30,17 +30,17 @@ platform_api -> edp_api: POST /edp-api/jobs (ConfiguratorPayload)
 edp_api --> platform_api: 202 { job_id }
 platform_api -> edp_api: GET /edp-api/jobs/{job_id} (poll)
 edp_api --> platform_api: edp_artifacts[] + ems_delivery
-platform_api -> artifact_s3: archive artifacts + render index.html
+platform_api -> artifact_s3: archive artifacts + render index.html\n(includes industrial-gateway tarball link for cloud orders)
 platform_api -> operator: email (portal link)
-operator -> artifact_s3: open portal\n(EDP downloads, CFN deep link or ISO, F-Droid link)
+operator -> artifact_s3: open portal\n(EDP downloads, CFN deep link or ISO, F-Droid link,\n cloud orders also: industrial-gateway tarball)
 operator -> epc_integrator: hand off EDP
-operator -> ems: spin up (sim mode → live on commissioning)
+operator -> ems: spin up (sim mode → live on commissioning)\ncloud: docker load + run gateway on-prem, dials cloud broker
 ```
 
 1. Operator enters load requirements, site constraints, and deployment context into the **System Configurator**.
 2. The configurator submits to **`platform-api`**, which forwards the sizing payload to **`edp-api`** and waits for the 8 EDP artifacts.
-3. `platform-api` archives the EDP artifacts to S3 and renders an HTML portal listing them alongside the EMS deployment link (CloudFormation deep link or air-gapped ISO, both embedding the DTM) and a link to the Android EMS app on F-Droid with DTM upload instructions.
-4. Operator's inbox receives a link to the portal. EDP goes to the electrical integrator. Operator clicks the EMS deployment link, which spins up EMS in simulation mode and switches to live on commissioning. No vendor involvement required.
+3. `platform-api` archives the EDP artifacts to S3 and renders an HTML portal listing them alongside the EMS deployment link (CloudFormation deep link or air-gapped ISO, both embedding the DTM) and a link to the Android EMS app on F-Droid with DTM upload instructions. For **cloud orders (CFN path)**, the portal also lists a link to the **industrial-gateway `docker-save` tarball** on `arcnode-public/gateway/`. Appliance/ISO orders bake the gateway in, so it's cloud-only.
+4. Operator's inbox receives a link to the portal. EDP goes to the electrical integrator. Operator clicks the EMS deployment link, which spins up EMS in simulation mode and switches to live on commissioning. For cloud orders, the operator downloads the gateway tarball and runs `docker load` + `docker run` on the on-prem host at the customer site — the gateway then dials the cloud broker outbound. No vendor involvement required.
 
 ## Repositories
 
