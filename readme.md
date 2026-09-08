@@ -44,17 +44,16 @@ operator -> ems: spin up (sim mode → live on commissioning)\ncloud: docker loa
 
 ## Repositories
 
-### EMS Suite (11 repos — runs on a deployed stack)
+### EMS Suite (8 repos — runs on a deployed stack)
 
 - [`ems`](https://gitlab.com/arcnode-io/ems) — umbrella + project overview
 - [`ems-device-api`](https://gitlab.com/arcnode-io/ems-device-api) — device topology + topic provisioning
 - [`ems-hmi`](https://gitlab.com/arcnode-io/ems-hmi) — web + mobile HMI
 - [`ems-industrial-fixtures`](https://gitlab.com/arcnode-io/ems-industrial-fixtures) — mock industrial protocol fixtures
 - [`ems-industrial-gateway`](https://gitlab.com/arcnode-io/ems-industrial-gateway) — protocol → MQTT bridge
-- [`ems-analyst-api`](https://gitlab.com/arcnode-io/ems-analyst-api) — unified historical + ML + chat
+- [`ems-der-control-api`](https://gitlab.com/arcnode-io/ems-der-control-api) — IEEE 2030.5 / OpenADR DER control intake → MQTT
+- [`ems-analyst`](https://gitlab.com/arcnode-io/ems-analyst) — monorepo: domain-knowledge MCP server + analyst agent + FastAPI surface unifying both
 - [`ems-analyst-model`](https://gitlab.com/arcnode-io/ems-analyst-model) — solar forecasting models
-- [`ems-analyst-agent`](https://gitlab.com/arcnode-io/ems-analyst-agent) — energy analyst agent (RAG + KG)
-- [`ems-analyst-server`](https://gitlab.com/arcnode-io/ems-analyst-server) — FastAPI service unifying the above
 
 ### EDP Toolchain (3 repos — engineering deployment packages)
 
