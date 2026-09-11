@@ -17,6 +17,8 @@ Canonical vocabulary for product, engineering, and customer communication. One t
 
 Three module types: `compute_module`, `grid_module` (arcnode-fabricated containers), and `bess_module` (BYO — customer's Tesla Megapack, Tesla Megablock, or CATL EnerOne). Arcnode does **not** fabricate a BESS module. There is no `thermal_module` — dry coolers, chillers, and other site cooling infrastructure are not first-class EMS-monitored modules; their telemetry, when collected, is projected through `compute_module` equipment-tier devices (DLC sensors, VFD readings).
 
+**Grid-forming PCS location is conditional on `bess_coupling`, not a fixed template.** Tesla Megapack / Megablock (`ac_coupled`) carry their own grid-forming inverter internally — the PCS lives inside `bess_module`, and `grid_module` is switchgear + metering only for that coupling. CATL EnerOne (`dc_external_pcs`) does not grid-form itself — it pairs with arcnode's own `GRD-PCS-001` (an EPC PD500), which lives inside `grid_module` and does the grid-forming. Don't assume either module always owns the PCS; check `bess_coupling` first.
+
 ## Geometry
 
 | Term | Definition | Aliases to avoid |
@@ -39,7 +41,14 @@ Pitfalls: (1) merging both into a single bounding box loses directionality — a
 
 Why "template" instead of "class": *class* is OOP jargon and doesn't translate to operators or industrial integrators. *Template* is the standard SCADA/HMI term for "a definition you instantiate." OPC UA's *ObjectType*, IEC 61850's *Logical Node Type*, BACnet's *ObjectType*, and Sparkplug's *Device Definition* all model the same concept.
 
-**Templates encode ARCNODE-engineered hardware *and* ARCNODE-authored integrations.** Compute and Grid containers are arcnode-built end-to-end (GPU servers, NVLink switches, DLC pumps + plate heat exchangers, breakers; AC switchgear, transformer, PCS, metering relays). BESS templates encode supported third-party gear (Tesla Megapack, Tesla Megablock, CATL EnerOne) — vendor protocol surfaces, register maps, and standards metadata, authored by the ARCNODE team. Templates are opinionated, versioned, PR-gated definitions; codegen and HMI views are designed against the specific shapes templates declare. They are not vendor-agnostic placeholders or user extensibility points. Per-deployment one-off measurements use the DTM's `extra_measurements:` escape hatch, not template-authoring.
+**Templates encode ARCNODE-engineered hardware *and* ARCNODE-authored integrations.** Compute and Grid containers are arcnode-built end-to-end (GPU servers, NVLink switches, DLC pumps + plate heat exchangers, breakers; AC switchgear, transformer, metering relays, and — *conditionally* — a PCS). BESS templates encode supported third-party gear (Tesla Megapack, Tesla Megablock, CATL EnerOne) — vendor protocol surfaces, register maps, and standards metadata, authored by the ARCNODE team. Templates are opinionated, versioned, PR-gated definitions; codegen and HMI views are designed against the specific shapes templates declare. They are not vendor-agnostic placeholders or user extensibility points. Per-deployment one-off measurements use the DTM's `extra_measurements:` escape hatch, not template-authoring.
+
+**PCS provenance is conditional on `bess_coupling`, not a fixed Grid-container component.** Three couplings carry a PCS (a fourth, `none`, has no BESS and can't island):
+- `ac_coupled` (Tesla Megapack, Tesla Megablock): PCS is integrated in the BESS. Lives in `bess_module`; `grid_module` for these deployments is AC switchgear + metering only. Grid-forming confirmed (`EXT-BESS-001/spec.yaml`).
+- `dc_external_pcs` (CATL EnerOne, DC output): the BESS does not grid-form itself — it pairs with ARCNODE's own `GRD-PCS-001` inside `grid_module`, which grid-forms. Confirmed via `GRD-PCS-001/spec.yaml`.
+- `dc_integrated_pcs` (a distinct CATL EnerOne **AC**-output SKU, PCS integrated in the BESS pad itself): **undocumented.** No `equipment/` spec exists for this SKU yet — grid-forming capability unconfirmed, `reviewed_by: TBD_pending_human_review` same as other in-progress specs. Do not assume it grid-forms until a sourced spec lands.
+
+`bess_coupling: ac_coupled | dc_integrated_pcs | dc_external_pcs | none` on the deployment payload determines which shape applies — the `grid_module` template's `contains:` block is conditional on the selected `bess_coupling`, not a single fixed list.
 
 Templates appear on engineering surfaces (YAML files, code, the `template:` field on every DTM device) and may appear in commissioning UIs. They do not appear in HMI runtime labels, customer-facing docs, or sales material — those use **display name**.
 
