@@ -125,8 +125,9 @@ Resolution order: DTM override → template default → humanized canonical.
 | **cfg.defaults.yml** | Per-service YAML baked into the image. One block per stage. The file the loader reads first; pydantic validates after any customer merge. | base config, baseline config, cfg.yml |
 | **cfg.customer.yml** | Per-deploy YAML written by platform-api UserData from the `ConfiguratorPayload`. Mounted into the service container; deep-merged over the matching stage block in `cfg.defaults.yml` before validation. | customer overlay, customer override, runtime config |
 | **CFG_CUSTOMER_PATH** | Env var holding the path to `cfg.customer.yml`. The contract; the value is platform-supplied per service. | cfg path, overlay path |
-| **commissioning POST** | The `POST /topology` call a customer makes after deploy to fill in real device connection info (IP/port/unit_id). Until then, devices render `--` in HMI. | go-live, flip to live, activation |
-| **industrial fixtures** | Mock protocol servers (modbus / snmp / redfish / dnp3 / bacnet) shipped from `ems-industrial-fixtures`. Deployed in compose; the `industrial-fixtures.json` DTM points devices at them to exercise the full path through the device boundary. | mocks, sim devices |
+| **provisioning** | The `POST /topology` call a customer makes after deploy to fill in real device connection info (IP/port/unit_id). Until then, devices render `--` in HMI. Not commissioning. | commissioning POST, go-live, flip to live, activation |
+| **industrial fixtures** | Protocol servers (modbus / snmp / redfish / dnp3 / bacnet) from `ems-industrial-fixtures` standing in for real devices. Test/demo stacks only; never in a customer deployment. | mocks, simulators, sim devices |
+| **unprovisioned** | Device whose connection is still `PROVISIONED_AT_COMMISSIONING`. Not polled; not a fault. | sim, offline |
 
 Pitfalls: (1) inventing a separate "staging" or "prod" stage — every AWS deploy uses `ENV=beta`; what differs is the AWS account, DTM contents, and per-deploy creds (not a stage); (2) putting per-deploy values in `config.env` instead of `cfg.customer.yml` (the cardinal rule: secrets stay env, ENV stays env, everything else is YAML); (3) hardcoding paths the customer might re-target — use `CFG_CUSTOMER_PATH`, not literal file paths.
 
