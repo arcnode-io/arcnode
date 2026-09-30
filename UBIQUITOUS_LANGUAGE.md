@@ -14,6 +14,7 @@ Canonical vocabulary for product, engineering, and customer communication. One t
 |---|---|---|
 | **module** | A physical 10ft ISO container *and* the informational domain concept it represents — the two are the same entity in this system | container, unit, box, sub-system |
 | **equipment** | A piece of gear installed inside a module (cells, BMS, GPU server, chiller, breaker, racks, sensors, etc.). Equipment may itself contain further equipment — depth is unbounded. | sub-module, component, part, equipment unit, sub-component |
+| **power conversion system** | The bidirectional inverter hardware between a battery's DC and the AC bus (e.g. `GRD-PCS-001`, EPC PD500; Megapack's built-in inverter). What `pcs` means in `dc_external_pcs`, `dc_integrated_pcs`, `category: pcs`. Certified as an inverter (UL 1741 SA/SB, IEEE 1547). | PCS (ambiguous), inverter (ok informally) |
 
 Three module types: `compute_module`, `grid_module` (arcnode-fabricated containers), and `bess_module` (BYO — customer's Tesla Megapack, Tesla Megablock, or CATL EnerOne). Arcnode does **not** fabricate a BESS module. There is no `thermal_module` — dry coolers, chillers, and other site cooling infrastructure are not first-class EMS-monitored modules; their telemetry, when collected, is projected through `compute_module` equipment-tier devices (DLC sensors, VFD readings).
 
@@ -138,6 +139,7 @@ Pitfalls: (1) inventing a separate "staging" or "prod" stage — every AWS deplo
 | **AsyncAPI spec** | The AsyncAPI v3 document served by `ems-device-api` at `GET /asyncapi`; generated from the persisted DTM (which embeds its own `templates_used` map); single source of truth for all topic shapes, payload schemas, and protocol bindings | "the spec", API spec, topic spec |
 | **IEC 61850** | The grid-equipment communication standard; DTM is a strict superset of IEC 61850 SCD. Structural SCD enforcement deferred to v1.x; `iec_61850` metadata blocks present in template YAML as annotation. Query the domain MCP server for IEC 61850 logical node definitions. | — |
 | **SCD** | Substation Configuration Description — the IEC 61850 XML export format that DTM supersedes for Arcnode devices | — |
+| **power control system** | The controller that keeps site import/export at the point of interconnection within a limit (UL 1741 PCS CRD, now UL 3141). Certified separately from the inverter. The gateway's operating-envelope loop does this job but is not certified. | PCS (ambiguous), export limiter |
 
 ---
 
@@ -185,6 +187,8 @@ Pitfalls: (1) inventing a separate "staging" or "prod" stage — every AWS deplo
 - **"Site" implies multi-site** — the `sites/{site_id}/` topic prefix implies multiple sites per deployment, but MVP is 1:1 (one deployment = one site). The prefix is retained for forward-compatibility. Docs that describe "a site" at MVP mean "the single site in that deployment."
 
 - **"Device" (multi-tier)** — used for both module-tier and equipment-tier instances. Both are correct uses of "device"; distinguish with **module-tier device** / **equipment-tier device** when tier matters. Equipment-tier devices may contain further equipment-tier devices (an `ac_switchgear` containing `breaker`s) — depth is unbounded.
+
+- **"PCS"** — means **power conversion system** (inverter hardware) in our equipment and enums, but **power control system** (site import/export limiter) in UL 1741. Spell out whichever is meant; an inverter's UL 1741 SA/SB listing says nothing about power control system certification.
 
 - **"State"** — appeared as a draft third-family name. Not a distinct concept. Anything a device emits — including alarm state, tap position, communication health — is a **measurement**. There is no `states/` family.
 
