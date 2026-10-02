@@ -63,9 +63,9 @@ operator -> ems: spin up (sim mode → live on commissioning)\ncloud: docker loa
 
 ### Custom Hardware (1 repo)
 
-- [`dlr-pcb`](https://gitlab.com/arcnode-io/dlr-pcb) — Pi HAT PCB for the solar-powered DLR sensor RTU
-- [`dlr-rtu-firmware`](https://gitlab.com/arcnode-io/dlr-rtu-firmware) — IEEE 738 DLR sensors + DOE operating envelope publisher
-- [`dlr-tap-regulator-sim`](https://gitlab.com/arcnode-io/dlr-tap-regulator-sim) — phase shift transformer demo apparatus (ESP32 + relay)
+- [`dlr-rtu-pcb`](https://gitlab.com/arcnode-io/dlr-rtu-pcb) — Pi HAT PCB for the solar-powered DLR sensor RTU
+- [`dlr-rtu-firmware`](https://gitlab.com/arcnode-io/dlr-rtu-firmware) — IEEE 738 DLR sensors + live line-rating publisher
+- [`dlr-line-loading-sim`](https://gitlab.com/arcnode-io/dlr-line-loading-sim) — PZEM-004T line-loading sensor, publishes to mock-derms (ESP32)
 
 ### Public Surface (3 repos)
 
