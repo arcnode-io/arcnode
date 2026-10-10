@@ -109,6 +109,18 @@ The five components that render measurement samples in `ems-hmi`. Each maps to o
 | **Gauge** | bounded `float` | Circular arc showing position in operating range. Props: `min`, `max`, `thresholds[]`. | dial, meter, circular indicator |
 | **RangeIndicator** | bounded `float` | Horizontal bar showing position in operating range. Same semantics as `Gauge`, used where vertical space is limited. | progress bar, bar indicator |
 
+## Alarms & Events
+
+Hollifield (*High Performance HMI Handbook*, alarm philosophy): an alarm exists solely to notify the operator of an abnormal situation that needs operator action; events that don't need action must not produce alarms, and the alarm system isn't for status or for record-keeping for other roles.
+
+| Term | Definition | Aliases to avoid |
+|---|---|---|
+| **alarm** | An abnormal situation that needs a specific, known operator action. Annunciated, carries severity, and must be acknowledged. Derived from a measurement against its template `thresholds` / `severity`. A normal situation is never an alarm, even an unusual one (e.g. a DER event setting `import_limit` to 0 W is expected and is not an alarm). | alert, warning, notification |
+| **event** | A timestamped record of something that happened: a DER event starting or ending, a command sent, a setpoint changed, a mode change, an alarm raising/clearing/being acknowledged. **Events are never acknowledged — no ack.** Not annunciated. Recorded for review, not for action. | log entry, activity, alarm (when no action is needed) |
+| **acknowledge (ack)** | An operator's recorded statement that they've seen an alarm. Stores who and when. Doesn't clear the alarm; the alarm clears when its condition returns to normal. Applies to alarms only, never events. | dismiss, clear, silence |
+| **alarm history** | The record of each alarm's lifecycle: raised, acknowledged (by whom, when), cleared. | alarm log |
+| **event history** | The chronological record of events. A separate surface from active alarms. | audit log (except the LOTO audit requirement), activity feed |
+
 ## Naming
 
 | Term | Definition | Aliases to avoid |
@@ -189,6 +201,8 @@ Pitfalls: (1) inventing a separate "staging" or "prod" stage — every AWS deplo
 - **"Device" (multi-tier)** — used for both module-tier and equipment-tier instances. Both are correct uses of "device"; distinguish with **module-tier device** / **equipment-tier device** when tier matters. Equipment-tier devices may contain further equipment-tier devices (an `ac_switchgear` containing `breaker`s) — depth is unbounded.
 
 - **"PCS"** — means **power conversion system** (inverter hardware) in our equipment and enums, but **power control system** (site import/export limiter) in UL 1741. Spell out whichever is meant; an inverter's UL 1741 SA/SB listing says nothing about power control system certification.
+
+- **"Event" (DER event vs event)** — a **DER event** is one utility dispatch instance (`event_active`, `der_event_state`). An **event** is any entry in event history. A DER event starting or ending is one kind of event. Say "DER event" when meaning the dispatch.
 
 - **"State"** — appeared as a draft third-family name. Not a distinct concept. Anything a device emits — including alarm state, tap position, communication health — is a **measurement**. There is no `states/` family.
 
